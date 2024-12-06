@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Task Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    #taskInput {
+      width: 70%;
+      padding: 5px;
+    }
+    #addTask {
+      padding: 5px 10px;
+    }
+    #taskList {
+      list-style-type: none;
+      padding: 0;
+    }
+    .task {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .task input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    .task button {
+      margin-left: 10px;
+      padding: 5px 10px;
+    }
+    .counter {
+      margin-top: 20px;
+    }
+    button {
+      padding: 5px 15px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Task Manager</h1>
+
+  <input id="taskInput" type="text" placeholder="Enter task">
+  <button id="addTask">Add Task</button>
+
+  <div>
+    <button id="showAll">All Tasks</button>
+    <button id="showCompleted">Completed Tasks</button>
+    <button id="showIncomplete">Incomplete Tasks</button>
+    <button id="sortTasks">Sort Alphabetically</button>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <div class="counter">
+    <p>Total Tasks: <span id="totalCount">0</span></p>
+    <p>Completed Tasks: <span id="completedCount">0</span></p>
+    <p>Incomplete Tasks: <span id="incompleteCount">0</span></p>
+  </div>
+
+  <script>
+    const addTaskButton = document.getElementById('addTask');
+    const taskInput = document.getElementById('taskInput');
+    const taskList = document.getElementById('taskList');
+    const totalCount = document.getElementById('totalCount');
+    const completedCount = document.getElementById('completedCount');
+    const incompleteCount = document.getElementById('incompleteCount');
+
+    let tasks = [];
+
+    // Add Task
+    addTaskButton.onclick = function() {
+      const taskText = taskInput.value.trim();
+      if (taskText === '') return;
+
+      const newTask = {
+        id: Date.now(),
+        text: taskText,
+        completed: false
+      };
+      tasks.push(newTask);
+      taskInput.value = ''; // Clear input field
+      renderTasks(tasks); // Re-render tasks
+    };
+
+    // Render Tasks
+    function renderTasks(filteredTasks) {
+      taskList.innerHTML = '';
+      filteredTasks.forEach(task => {
+        const taskItem = document.createElement('li');
+        taskItem.classList.add('task');
+        taskItem.innerHTML = `
+          <input type="checkbox" ${task.completed ? 'checked' : ''}>
+          ${task.text}
+          <button class="delete-btn">Delete</button>
+        `;
+        taskItem.setAttribute('data-id', task.id);
+        taskList.appendChild(taskItem);
+      });
+
+      updateCounter();
+    }
+
+    // Event Delegation for task actions (toggle completion and delete)
+    taskList.addEventListener('click', function(e) {
+      const taskId = e.target.closest('li').getAttribute('data-id');
+      const task = tasks.find(task => task.id == taskId);
+
+      if (e.target.type === 'checkbox') {
+        // Toggle completion
+        task.completed = !task.completed;
+        renderTasks(tasks);
+      }
+
+      if (e.target.classList.contains('delete-btn')) {
+        // Delete task
+        tasks = tasks.filter(task => task.id != taskId);
+        renderTasks(tasks);
+      }
+    });
+
+    // Filter Tasks
+    document.getElementById('showAll').onclick = function() {
+      renderTasks(tasks);
+    };
+    document.getElementById('showCompleted').onclick = function() {
+      const completedTasks = tasks.filter(task => task.completed);
+      renderTasks(completedTasks);
+    };
+    document.getElementById('showIncomplete').onclick = function() {
+      const incompleteTasks = tasks.filter(task => !task.completed);
+      renderTasks(incompleteTasks);
+    };
+
+    // Sort Tasks Alphabetically
+    document.getElementById('sortTasks').onclick = function() {
+      tasks.sort((a, b) => a.text.localeCompare(b.text));
+      renderTasks(tasks);
+    };
+
+    // Update Dynamic Counter
+    function updateCounter() {
+      totalCount.textContent = tasks.length;
+      completedCount.textContent = tasks.filter(task => task.completed).length;
+      incompleteCount.textContent = tasks.filter(task => !task.completed).length;
+    }
+  </script>
+
+</body>
+</html>
